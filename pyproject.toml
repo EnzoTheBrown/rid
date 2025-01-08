@@ -1,0 +1,17 @@
+[project]
+name = "rid"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.1.8",
+    "flightsql-dbapi>=0.2.2",
+    "lancedb>=0.17.0",
+    "openai>=1.59.4",
+]
+
+[dependency-groups]
+dev = [
+    "ipython>=8.31.0",
+]
