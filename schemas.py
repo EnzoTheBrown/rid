@@ -13,13 +13,4 @@ class Note(BaseModel):
     content: str
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
-    vector: Vector(EMBEDDING_SIZE)
-
-    def __init__(self, **data):
-        if 'vector' in data:
-            super().__init__(**data)
-        else:
-            content = data.get('content')
-            title = data.get('title')
-            vector = embeddings((title or '') + ' ' + (content or ' '))
-            super().__init__(**data, vector=vector)
+    vector: Optional[Vector(EMBEDDING_SIZE)] = None

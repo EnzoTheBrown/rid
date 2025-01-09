@@ -10,11 +10,26 @@ from database import (
     update_note,
     remove_note
 )
+# We now import the helper, not just `improve`
+from embeddings import improve, embeddings
+import asyncio
+
+############################
+# NEW HELPER FOR PROGRESS #
+############################
+def improve_with_progress(content: str) -> str:
+    """
+    Show a progress bar and call the async `improve` function.
+    """
+    with click.progressbar(length=1, label="Improving your note...") as bar:
+        improved_content = asyncio.run(improve(content))
+        vector = asyncio.run(embeddings(improved_content))
+        bar.update(1)
+    return improved_content, vector
 
 @click.group()
 def cli():
     pass
-
 
 @cli.command()
 def init():
@@ -23,7 +38,6 @@ def init():
     """
     create_table()
 
-
 @cli.command()
 @click.argument('title', required=False)
 def note(title=None):
@@ -31,16 +45,17 @@ def note(title=None):
     Create a new note. Opens an editor for you to write content.
     """
     content = edit_note_content(('# ' + title) if title else '')
+    content, vector = improve_with_progress(content)
 
     new_note = Note(
         title=title,
         content=content,
+        vector=vector
     )
 
     table = open_table()
     add_note(table, new_note)
     click.echo("Note created successfully!")
-
 
 @cli.command()
 @click.argument('question', required=False)
@@ -82,13 +97,15 @@ def list(question=None, k=10):
         selected_note = notes[index]
         edited_content = edit_note_content(selected_note.content)
         if edited_content != selected_note.content:
+            # Show progress bar here as well
+            edited_content, vector = improve_with_progress(edited_content)
+            selected_note.vector = vector
             selected_note.content = edited_content
             update_note(table, selected_note)
             click.echo("Note updated successfully!")
             notes = get_notes(table, question, k)
         else:
             click.echo("No changes detected; the note was not updated.")
-
 
 @cli.command()
 @click.argument('question', required=False)

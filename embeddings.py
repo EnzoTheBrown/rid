@@ -1,21 +1,27 @@
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 MODEL = 'text-embedding-3-small'
-IMPROVE_MODEL = 'gpt-4o'
+IMPROVE_MODEL = 'gpt-4o-2024-08-06'
 
-client = OpenAI()
+client = AsyncOpenAI()
 
-def embeddings(text):
-    response = client.embeddings.create(
+async def embeddings(text):
+    response = await client.embeddings.create(
         input=text,
         model=MODEL,
     )
     return response.data[0].embedding
 
 
-def improve(text):
-    response = client.completions.create(
-        input=text,
-        model=IMPROVE_MODEL,
+async def improve(text: str) -> str:
+    response = await client.chat.completions.create(
+        model='gpt-4o',
+        messages=[
+            {
+                'role': 'system',
+                'content': f"Improve the following markdown notes, make it bright with plenty of emojis: {text}"
+            }
+        ]
     )
-    return response.choices[0].text
+    return response.choices[0].message.content
+
